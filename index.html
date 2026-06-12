@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bolão Copa 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <span class="nav-logo-cup">🏆</span>
+      <span class="nav-logo-text">BOLÃO <span class="accent">COPA</span> 2026</span>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="#ranking"    class="nav-link active" data-page="ranking">    🥇 Ranking</a>
+      <a href="#jogos"      class="nav-link"         data-page="jogos">      ⚽ Jogos</a>
+      <a href="#palpites"   class="nav-link"         data-page="palpites">   📋 Palpites</a>
+      <a href="#estatisticas" class="nav-link"       data-page="estatisticas">📊 Estatísticas</a>
+      <a href="#admin"      class="nav-link nav-admin" data-page="admin">    🔒 Admin</a>
+    </div>
+    <button class="hamburger" id="hamburger">☰</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="pageHero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">EDIÇÃO 2026</p>
+    <h1 class="hero-title">BOLÃO<br/><span class="hero-accent">COPA</span><br/>2026</h1>
+    <p class="hero-sub">Compete. Pontua. Vence.</p>
+  </div>
+  <div class="hero-balls">
+    <div class="ball b1"></div>
+    <div class="ball b2"></div>
+    <div class="ball b3"></div>
+  </div>
+</header>
+
+<!-- PAGES CONTAINER -->
+<main class="main-container">
+
+  <!-- ===== RANKING PAGE ===== -->
+  <section class="page active" id="page-ranking">
+    <div class="page-header">
+      <h2 class="page-title">🥇 Ranking</h2>
+      <p class="page-sub">Classificação geral do bolão</p>
+    </div>
+
+    <!-- TOP 3 PODIUM -->
+    <div class="podium-wrap" id="podiumWrap">
+      <div class="podium-card silver" id="podium2">
+        <div class="podium-medal">🥈</div>
+        <div class="podium-name" id="p2name">—</div>
+        <div class="podium-pts" id="p2pts">0 pts</div>
+        <div class="podium-block silver-block">2º</div>
+      </div>
+      <div class="podium-card gold" id="podium1">
+        <div class="podium-crown">👑</div>
+        <div class="podium-medal">🥇</div>
+        <div class="podium-name" id="p1name">—</div>
+        <div class="podium-pts" id="p1pts">0 pts</div>
+        <div class="podium-block gold-block">1º</div>
+      </div>
+      <div class="podium-card bronze" id="podium3">
+        <div class="podium-medal">🥉</div>
+        <div class="podium-name" id="p3name">—</div>
+        <div class="podium-pts" id="p3pts">0 pts</div>
+        <div class="podium-block bronze-block">3º</div>
+      </div>
+    </div>
+
+    <!-- FULL RANKING TABLE -->
+    <div class="card">
+      <div class="card-header"><span>Classificação Completa</span></div>
+      <div class="table-wrap">
+        <table class="data-table" id="rankingTable">
+          <thead>
+            <tr>
+              <th>Pos.</th>
+              <th>Nome</th>
+              <th>Pts</th>
+              <th>Exatos</th>
+              <th>Vencedor</th>
+              <th>Jogos</th>
+            </tr>
+          </thead>
+          <tbody id="rankingBody">
+            <tr><td colspan="6" class="empty-row">Nenhum participante cadastrado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NEXT GAMES -->
+    <div class="card" id="proximosCard">
+      <div class="card-header"><span>⚡ Próximos Jogos</span></div>
+      <div id="proximosJogos" class="proximos-list"></div>
+    </div>
+  </section>
+
+  <!-- ===== JOGOS PAGE ===== -->
+  <section class="page" id="page-jogos">
+    <div class="page-header">
+      <h2 class="page-title">⚽ Jogos</h2>
+      <p class="page-sub">Calendário completo do bolão</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span>Calendário</span>
+        <div class="filter-wrap">
+          <select class="select-input" id="filterDate">
+            <option value="">Todas as datas</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="jogosTable">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Time A</th>
+              <th></th>
+              <th>Time B</th>
+              <th>Resultado</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="jogosBody">
+            <tr><td colspan="6" class="empty-row">Nenhum jogo cadastrado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PALPITES PAGE ===== -->
+  <section class="page" id="page-palpites">
+    <div class="page-header">
+      <h2 class="page-title">📋 Palpites</h2>
+      <p class="page-sub">Todos os palpites por jogo</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span>Selecione o Jogo</span>
+      </div>
+      <div class="select-wrap">
+        <select class="select-input big" id="jogoSelect">
+          <option value="">— Escolha um jogo —</option>
+        </select>
+      </div>
+    </div>
+    <div id="palpitesJogoWrap"></div>
+  </section>
+
+  <!-- ===== ESTATÍSTICAS PAGE ===== -->
+  <section class="page" id="page-estatisticas">
+    <div class="page-header">
+      <h2 class="page-title">📊 Estatísticas</h2>
+      <p class="page-sub">Números do bolão</p>
+    </div>
+    <div class="stats-grid">
+      <div class="card">
+        <div class="card-header"><span>🎯 Mais Placares Exatos</span></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Nome</th><th>Exatos</th></tr></thead>
+            <tbody id="statExatos"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>✅ Mais Vencedores Acertados</span></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Nome</th><th>Acertos</th></tr></thead>
+            <tbody id="statVencedores"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span>🔥 Maiores Pontuações por Rodada</span></div>
+      <div class="table-wrap">
+        <table class="data-table" id="statRodadas">
+          <thead><tr><th>Rodada</th><th>Participante</th><th>Pontos</th></tr></thead>
+          <tbody id="statRodadasBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span>📈 Total por Participante</span></div>
+      <div id="barChartWrap" class="bar-chart-wrap"></div>
+    </div>
+  </section>
+
+  <!-- ===== ADMIN PAGE ===== -->
+  <section class="page" id="page-admin">
+    <div class="page-header">
+      <h2 class="page-title">🔒 Área Administrativa</h2>
+      <p class="page-sub">Acesso restrito ao organizador</p>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="adminLogin" class="admin-login-wrap">
+      <div class="login-card">
+        <div class="login-icon">🔐</div>
+        <h3 class="login-title">Acesso Admin</h3>
+        <input type="password" id="adminPass" class="text-input" placeholder="Senha" />
+        <button class="btn btn-primary" onclick="adminLogin()">Entrar</button>
+        <p class="login-hint" id="loginMsg"></p>
+      </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" style="display:none">
+      <div class="admin-tabs">
+        <button class="atab active" onclick="showAdminTab('tabParticipantes')">👥 Participantes</button>
+        <button class="atab" onclick="showAdminTab('tabJogos')">⚽ Jogos</button>
+        <button class="atab" onclick="showAdminTab('tabPalpites')">📋 Palpites</button>
+        <button class="atab" onclick="showAdminTab('tabResultados')">🏁 Resultados</button>
+        <button class="atab" onclick="adminLogout()">🚪 Sair</button>
+      </div>
+
+      <!-- TAB: Participantes -->
+      <div class="atab-content active" id="tabParticipantes">
+        <div class="card">
+          <div class="card-header"><span>Cadastrar Participante</span></div>
+          <div class="form-row">
+            <input type="text" id="nomeParticipante" class="text-input" placeholder="Nome completo" />
+            <input type="text" id="foneParticipante" class="text-input" placeholder="Telefone (opcional)" />
+            <button class="btn btn-primary" onclick="addParticipante()">+ Adicionar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span>Participantes Cadastrados</span>
+            <button class="btn btn-sm btn-danger" onclick="clearParticipantes()">Limpar Tudo</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>#</th><th>Nome</th><th>Fone</th><th>Ação</th></tr></thead>
+              <tbody id="participantesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Jogos -->
+      <div class="atab-content" id="tabJogos">
+        <div class="card">
+          <div class="card-header"><span>Cadastrar Jogo</span></div>
+          <div class="form-grid">
+            <input type="date" id="jogoData" class="text-input" />
+            <input type="text" id="jogoTimeA" class="text-input" placeholder="Time A" />
+            <input type="text" id="jogoTimeB" class="text-input" placeholder="Time B" />
+            <input type="text" id="jogoRodada" class="text-input" placeholder="Rodada (ex: Fase de Grupos)" />
+          </div>
+          <div class="form-row mt-sm">
+            <button class="btn btn-primary" onclick="addJogo()">+ Adicionar Jogo</button>
+            <button class="btn btn-secondary" onclick="importarJogos()">📥 Importar Jogos Copa 2026</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span>Jogos Cadastrados</span>
+            <button class="btn btn-sm btn-danger" onclick="clearJogos()">Limpar Tudo</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Data</th><th>Time A</th><th>X</th><th>Time B</th><th>Rodada</th><th>Ação</th></tr></thead>
+              <tbody id="adminJogosBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Palpites -->
+      <div class="atab-content" id="tabPalpites">
+        <div class="card">
+          <div class="card-header"><span>Inserir Palpite</span></div>
+          <div class="form-grid">
+            <select id="palpiteParticipante" class="select-input">
+              <option value="">Participante</option>
+            </select>
+            <select id="palpiteJogo" class="select-input">
+              <option value="">Jogo</option>
+            </select>
+            <input type="number" id="palpiteGolsA" class="text-input small" placeholder="Gols A" min="0" max="20" />
+            <input type="number" id="palpiteGolsB" class="text-input small" placeholder="Gols B" min="0" max="20" />
+          </div>
+          <button class="btn btn-primary" onclick="addPalpite()">💾 Salvar Palpite</button>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>Palpites Registrados</span>
+            <button class="btn btn-sm btn-danger" onclick="clearPalpites()">Limpar Tudo</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Participante</th><th>Jogo</th><th>Palpite</th><th>Pontos</th><th>Ação</th></tr></thead>
+              <tbody id="adminPalpitesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Resultados -->
+      <div class="atab-content" id="tabResultados">
+        <div class="card">
+          <div class="card-header"><span>Inserir Resultado</span></div>
+          <div class="form-grid">
+            <select id="resultadoJogo" class="select-input">
+              <option value="">Selecione o Jogo</option>
+            </select>
+            <input type="number" id="resultadoGolsA" class="text-input small" placeholder="Gols A" min="0" max="20" />
+            <input type="number" id="resultadoGolsB" class="text-input small" placeholder="Gols B" min="0" max="20" />
+          </div>
+          <button class="btn btn-primary" onclick="addResultado()">🏁 Salvar Resultado & Recalcular</button>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>Resultados Inseridos</span></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Jogo</th><th>Resultado</th><th>Status</th><th>Ação</th></tr></thead>
+              <tbody id="adminResultadosBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL: Player Detail -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <span>🏆 Bolão Copa 2026</span>
+    <span class="footer-dev">Desenvolvido por <strong>Jhony Beraldo</strong></span>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
