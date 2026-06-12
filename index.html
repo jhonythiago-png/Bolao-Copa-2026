@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#080c17" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Bolão Copa 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- TOP NAV (visible on desktop) -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <div class="nav-logo" onclick="navigate('ranking')">
+      <span class="nav-logo-cup">🏆</span>
+      <span class="nav-logo-text">BOLÃO <span class="accent">COPA</span> 2026</span>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a class="nav-link active" data-page="ranking">🥇 Ranking</a>
+      <a class="nav-link"        data-page="jogos">⚽ Jogos</a>
+      <a class="nav-link"        data-page="palpites">📋 Palpites</a>
+      <a class="nav-link"        data-page="estatisticas">📊 Estatísticas</a>
+      <a class="nav-link"        data-page="premiacao">💰 Premiação</a>
+      <a class="nav-link"        data-page="regras">📖 Regras</a>
+      <a class="nav-link nav-admin" data-page="admin">🔒 Admin</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO — Netflix-style slim horizontal banner -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <span class="hero-cup">🏆</span>
+      <div class="hero-text">
+        <div class="hero-title">BOLÃO <span class="accent">COPA</span> 2026</div>
+        <div class="hero-sub">Compete · Pontua · Vence</div>
+      </div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-right" id="heroStats">
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="heroJogos">0</div>
+        <div class="hero-stat-lbl">Jogos<br>cadastrados</div>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" id="heroParticipantes">0</div>
+        <div class="hero-stat-lbl">Participantes<br>no bolão</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PAGES CONTAINER -->
+<main class="main-container">
+
+  <!-- ===== RANKING ===== -->
+  <section class="page active" id="page-ranking">
+    <div class="page-header">
+      <h2 class="page-title">🥇 Ranking</h2>
+      <p class="page-sub">Classificação geral do bolão</p>
+    </div>
+
+    <div class="podium-wrap" id="podiumWrap">
+      <div class="podium-card silver" id="podium2" onclick="">
+        <div class="podium-inner">
+          <div class="podium-medal">🥈</div>
+          <div class="podium-name" id="p2name">—</div>
+          <div class="podium-pts" id="p2pts">0 pts</div>
+        </div>
+        <div class="podium-block silver-block">2º</div>
+      </div>
+      <div class="podium-card gold" id="podium1" onclick="">
+        <div class="podium-inner">
+          <div class="podium-crown">👑</div>
+          <div class="podium-medal">🥇</div>
+          <div class="podium-name" id="p1name">—</div>
+          <div class="podium-pts" id="p1pts">0 pts</div>
+        </div>
+        <div class="podium-block gold-block">1º</div>
+      </div>
+      <div class="podium-card bronze" id="podium3" onclick="">
+        <div class="podium-inner">
+          <div class="podium-medal">🥉</div>
+          <div class="podium-name" id="p3name">—</div>
+          <div class="podium-pts" id="p3pts">0 pts</div>
+        </div>
+        <div class="podium-block bronze-block">3º</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span>Classificação Completa</span></div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Pos.</th>
+              <th>Nome</th>
+              <th>Pts</th>
+              <th>Exatos</th>
+              <th>Venc.</th>
+              <th>Jogos</th>
+            </tr>
+          </thead>
+          <tbody id="rankingBody">
+            <tr><td colspan="6" class="empty-row">Nenhum participante cadastrado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span>⚡ Próximos Jogos</span></div>
+      <div id="proximosJogos" class="proximos-list">
+        <p style="color:var(--muted);padding:12px 0;font-style:italic;font-size:0.85rem">Nenhum jogo programado</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== JOGOS ===== -->
+  <section class="page" id="page-jogos">
+    <div class="page-header">
+      <h2 class="page-title">⚽ Jogos</h2>
+      <p class="page-sub">Calendário completo do bolão</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span>Calendário</span>
+        <div class="filter-wrap">
+          <select class="select-input" id="filterDate">
+            <option value="">Todas as datas</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Time A</th>
+              <th></th>
+              <th>Time B</th>
+              <th>Resultado</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="jogosBody">
+            <tr><td colspan="6" class="empty-row">Nenhum jogo cadastrado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PALPITES ===== -->
+  <section class="page" id="page-palpites">
+    <div class="page-header">
+      <h2 class="page-title">📋 Palpites</h2>
+      <p class="page-sub">Todos os palpites por jogo</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span>Selecione o Jogo</span></div>
+      <div class="select-wrap">
+        <select class="select-input big" id="jogoSelect">
+          <option value="">— Escolha um jogo —</option>
+        </select>
+      </div>
+    </div>
+    <div id="palpitesJogoWrap"></div>
+  </section>
+
+  <!-- ===== ESTATÍSTICAS ===== -->
+  <section class="page" id="page-estatisticas">
+    <div class="page-header">
+      <h2 class="page-title">📊 Estatísticas</h2>
+      <p class="page-sub">Números do bolão</p>
+    </div>
+    <div class="stats-grid">
+      <div class="card">
+        <div class="card-header"><span>🎯 Placares Exatos</span></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Nome</th><th>Qtd</th></tr></thead>
+            <tbody id="statExatos"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>✅ Vencedores</span></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Nome</th><th>Qtd</th></tr></thead>
+            <tbody id="statVencedores"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span>🔥 Melhores por Rodada</span></div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Rodada</th><th>Participante</th><th>Pts</th></tr></thead>
+          <tbody id="statRodadasBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span>📈 Pontuação Geral</span></div>
+      <div id="barChartWrap" class="bar-chart-wrap"></div>
+    </div>
+  </section>
+
+  <!-- ===== ADMIN ===== -->
+  <section class="page" id="page-admin">
+    <div class="page-header">
+      <h2 class="page-title">🔒 Admin</h2>
+      <p class="page-sub">Área restrita ao organizador</p>
+    </div>
+
+    <div id="adminLogin" class="admin-login-wrap">
+      <div class="login-card">
+        <div class="login-icon">🔐</div>
+        <h3 class="login-title">Acesso Admin</h3>
+        <input type="password" id="adminPass" class="text-input" placeholder="Senha" autocomplete="current-password" />
+        <div style="margin-top:10px">
+          <button class="btn btn-primary" style="width:100%" onclick="adminLogin()">Entrar</button>
+        </div>
+        <p class="login-hint" id="loginMsg"></p>
+      </div>
+    </div>
+
+    <div id="adminPanel" style="display:none">
+      <div class="admin-tabs">
+        <button class="atab active" onclick="showAdminTab('tabParticipantes')">👥 Participantes</button>
+        <button class="atab" onclick="showAdminTab('tabJogos')">⚽ Jogos</button>
+        <button class="atab" onclick="showAdminTab('tabPalpites')">📋 Palpites</button>
+        <button class="atab" onclick="showAdminTab('tabResultados')">🏁 Resultados</button>
+        <button class="atab" onclick="showAdminTab('tabConfig')">⚙️ Config</button>
+        <button class="atab" onclick="adminLogout()" style="margin-left:auto">🚪 Sair</button>
+      </div>
+
+      <div class="atab-content active" id="tabParticipantes">
+        <div class="card">
+          <div class="card-header"><span>Cadastrar Participante</span></div>
+          <div class="form-row">
+            <input type="text" id="nomeParticipante" class="text-input" placeholder="Nome completo" />
+            <input type="text" id="foneParticipante" class="text-input" placeholder="Telefone (opcional)" />
+            <button class="btn btn-primary" onclick="addParticipante()">+ Adicionar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span>Participantes Cadastrados</span>
+            <button class="btn btn-sm btn-danger" onclick="clearParticipantes()">Limpar</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>#</th><th>Nome</th><th>Fone</th><th>Ações</th></tr></thead>
+              <tbody id="participantesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="atab-content" id="tabJogos">
+        <div class="card">
+          <div class="card-header"><span>Cadastrar Jogo</span></div>
+          <div class="form-grid">
+            <input type="date" id="jogoData" class="text-input" />
+            <input type="text" id="jogoTimeA" class="text-input" placeholder="Time A" />
+            <input type="text" id="jogoTimeB" class="text-input" placeholder="Time B" />
+            <input type="text" id="jogoRodada" class="text-input" placeholder="Rodada" />
+          </div>
+          <div class="form-row mt-sm">
+            <button class="btn btn-primary" onclick="addJogo()">+ Jogo</button>
+            <button class="btn btn-secondary" onclick="importarJogos()">📥 Importar Copa 2026</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span>Jogos Cadastrados</span>
+            <button class="btn btn-sm btn-danger" onclick="clearJogos()">Limpar</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Data</th><th>Time A</th><th>×</th><th>Time B</th><th>Rodada</th><th></th></tr></thead>
+              <tbody id="adminJogosBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="atab-content" id="tabPalpites">
+        <!-- Step 1: select participant -->
+        <div class="card">
+          <div class="card-header"><span>1️⃣ Selecione o Participante</span></div>
+          <div class="bulk-participant-picker" id="bulkParticipantPicker">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Step 2: bulk palpites grid (shown after selecting participant) -->
+        <div id="bulkPalpitesWrap" style="display:none">
+          <div class="card">
+            <div class="card-header">
+              <span>2️⃣ Palpites de <strong id="bulkNomeLabel">—</strong></span>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary btn-sm" onclick="salvarTodosPalpites()">💾 Salvar Todos</button>
+                <button class="btn btn-secondary btn-sm" onclick="limparBulkForm()">✕ Limpar</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table" id="bulkPalpitesTable">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Jogo</th>
+                    <th style="text-align:center">Gols A</th>
+                    <th style="text-align:center">×</th>
+                    <th style="text-align:center">Gols B</th>
+                    <th style="text-align:center">Salvo</th>
+                  </tr>
+                </thead>
+                <tbody id="bulkPalpitesBody"></tbody>
+              </table>
+            </div>
+            <div style="padding:12px 16px;border-top:1px solid var(--border)">
+              <button class="btn btn-primary" style="width:100%" onclick="salvarTodosPalpites()">💾 Salvar Todos os Palpites</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Palpites registrados -->
+        <div class="card">
+          <div class="card-header">
+            <span>Palpites Registrados</span>
+            <button class="btn btn-sm btn-danger" onclick="clearPalpites()">Limpar Tudo</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Participante</th><th>Jogo</th><th>Palpite</th><th>Pts</th><th></th></tr></thead>
+              <tbody id="adminPalpitesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="atab-content" id="tabResultados">
+        <div class="card">
+          <div class="card-header"><span>Inserir Resultado</span></div>
+          <div class="form-grid">
+            <select id="resultadoJogo" class="select-input"><option value="">Selecione o Jogo</option></select>
+            <input type="number" id="resultadoGolsA" class="text-input small" placeholder="Gols A" min="0" max="20" />
+            <input type="number" id="resultadoGolsB" class="text-input small" placeholder="Gols B" min="0" max="20" />
+          </div>
+          <div class="form-row mt-sm">
+            <button class="btn btn-primary" onclick="addResultado()">🏁 Salvar & Recalcular</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>Resultados Inseridos</span></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Jogo</th><th>Resultado</th><th>Status</th><th></th></tr></thead>
+              <tbody id="adminResultadosBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="atab-content" id="tabConfig">
+        <div class="card">
+          <div class="card-header"><span>⚙️ Configurações do Bolão</span></div>
+          <div class="form-row" style="flex-direction:column;align-items:flex-start;gap:16px">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <label style="font-weight:600;color:var(--muted);font-size:0.85rem;min-width:180px">💵 Valor por participante (R$)</label>
+              <input type="number" id="configValor" class="text-input small" placeholder="20" min="1" step="0.01" value="20" style="max-width:120px" />
+              <button class="btn btn-primary" onclick="salvarConfig()">💾 Salvar</button>
+            </div>
+            <p style="font-size:0.8rem;color:var(--muted)">Este valor é usado para calcular a premiação automaticamente.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== PREMIAÇÃO ===== -->
+  <section class="page" id="page-premiacao">
+    <div class="page-header">
+      <h2 class="page-title">💰 Premiação</h2>
+      <p class="page-sub">Distribuição do valor arrecadado</p>
+    </div>
+
+    <!-- Caixa total -->
+    <div class="premio-caixa-card">
+      <div class="premio-caixa-left">
+        <div class="premio-caixa-label">💵 Total Arrecadado</div>
+        <div class="premio-caixa-val" id="premioTotal">R$ 0,00</div>
+        <div class="premio-caixa-sub" id="premioSub">0 participantes × R$ 20,00</div>
+      </div>
+      <div class="premio-caixa-right">
+        <div class="premio-caixa-label">👥 Participantes</div>
+        <div class="premio-caixa-val" id="premioCount" style="color:var(--accent2)">0</div>
+      </div>
+    </div>
+
+    <!-- Tabela de prêmios -->
+    <div class="card">
+      <div class="card-header"><span>🏅 Distribuição por Colocação</span></div>
+      <div class="premio-grid" id="premioGrid">
+        <!-- renderizado por JS -->
+      </div>
+    </div>
+
+    <!-- Ranking com premiação -->
+    <div class="card">
+      <div class="card-header"><span>🏆 Classificação & Prêmios</span></div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Pos.</th>
+              <th>Nome</th>
+              <th>Pts</th>
+              <th>Prêmio</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody id="premioRankingBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== REGRAS ===== -->
+  <section class="page" id="page-regras">
+    <div class="page-header">
+      <h2 class="page-title">📖 Regras</h2>
+      <p class="page-sub">Sistema de pontuação do bolão</p>
+    </div>
+
+    <!-- Tabela resumo -->
+    <div class="card">
+      <div class="card-header"><span>⚡ Resumo Rápido</span></div>
+      <div class="table-wrap">
+        <table class="data-table regras-resumo">
+          <thead>
+            <tr><th>Situação</th><th>Pts</th><th>Exemplo</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="regra-badge r7">⭐ Placar Exato</span></td>
+              <td><span class="pts-badge">7</span></td>
+              <td class="regra-ex">Apostou 2×0 → Resultado 2×0</td>
+            </tr>
+            <tr>
+              <td><span class="regra-badge r7">⭐ Empate Exato</span></td>
+              <td><span class="pts-badge">7</span></td>
+              <td class="regra-ex">Apostou 1×1 → Resultado 1×1</td>
+            </tr>
+            <tr>
+              <td><span class="regra-badge r5">✅ Vencedor + Gols do Vencedor</span></td>
+              <td><span class="pts-badge" style="background:rgba(0,224,150,0.12);color:var(--green)">5</span></td>
+              <td class="regra-ex">Apostou 2×0 → Resultado 2×1</td>
+            </tr>
+            <tr>
+              <td><span class="regra-badge r4">✅ Vencedor + Gols do Perdedor</span></td>
+              <td><span class="pts-badge" style="background:rgba(96,208,160,0.12);color:#60d0a0">4</span></td>
+              <td class="regra-ex">Apostou 2×0 → Resultado 3×0</td>
+            </tr>
+            <tr>
+              <td><span class="regra-badge r3">👍 Só o Vencedor</span></td>
+              <td><span class="pts-badge" style="background:rgba(245,166,35,0.12);color:var(--accent2)">3</span></td>
+              <td class="regra-ex">Apostou 2×0 → Resultado 3×1</td>
+            </tr>
+            <tr>
+              <td><span class="regra-badge r3">👍 Empate (placar diferente)</span></td>
+              <td><span class="pts-badge" style="background:rgba(245,166,35,0.12);color:var(--accent2)">3</span></td>
+              <td class="regra-ex">Apostou 0×0 → Resultado 1×1</td>
+            </tr>
+            <tr>
+              <td><span class="regra-badge r1">🙏 Placar Invertido Exato</span></td>
+              <td><span class="pts-badge" style="background:rgba(90,110,144,0.12);color:var(--muted)">1</span></td>
+              <td class="regra-ex">Apostou 2×0 → Resultado 0×2</td>
+            </tr>
+            <tr>
+              <td><span class="regra-badge r0">❌ Errou</span></td>
+              <td><span class="pts-badge" style="background:rgba(255,68,102,0.1);color:var(--accent3)">0</span></td>
+              <td class="regra-ex">Apostou 2×0 → Resultado 1×1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Regras detalhadas -->
+    <div class="regras-list">
+
+      <div class="regra-item">
+        <div class="regra-header">
+          <span class="regra-num">1</span>
+          <div>
+            <div class="regra-title">Placar Exato</div>
+            <div class="regra-pts-tag r7-tag">7 pontos</div>
+          </div>
+        </div>
+        <p class="regra-desc">Acertou o número exato de gols dos dois times.</p>
+        <div class="regra-exemplo">
+          <div class="regra-ex-row"><span class="regra-ex-label">Aposta</span><span class="regra-score">2 × 0</span></div>
+          <div class="regra-ex-row"><span class="regra-ex-label">Resultado</span><span class="regra-score">2 × 0</span></div>
+          <div class="regra-ex-row"><span class="regra-ex-label">Pontos</span><span class="pts-badge">7 ⭐</span></div>
+        </div>
+      </div>
+
+      <div class="regra-item">
+        <div class="regra-header">
+          <span class="regra-num">2</span>
+          <div>
+            <div class="regra-title">Ponto de Misericórdia</div>
+            <div class="regra-pts-tag r1-tag">1 ponto</div>
+          </div>
+        </div>
+        <p class="regra-desc">Acertou o placar, mas invertido — exatamente ao contrário.</p>
+        <div class="regra-exemplo">
+          <div class="regra-ex-row"><span class="regra-ex-label">Aposta</span><span class="regra-score">2 × 0</span></div>
+          <div class="regra-ex-row"><span class="regra-ex-label">Resultado</span><span class="regra-score">0 × 2</span></div>
+          <div class="regra-ex-row"><span class="regra-ex-label">Pontos</span><span class="pts-badge" style="background:rgba(90,110,144,0.15);color:var(--muted)">1 🙏</span></div>
+        </div>
+        <div class="regra-aviso">⚠️ Atenção: 2×0 vs 0×1 = 0 pontos (não é invertido exato)</div>
+      </div>
+
+      <div class="regra-item">
+        <div class="regra-header">
+          <span class="regra-num">3</span>
+          <div>
+            <div class="regra-title">Empates</div>
+            <div class="regra-pts-tag r7-tag">7 pts</div>
+            <div class="regra-pts-tag r3-tag" style="margin-left:4px">ou 3 pts</div>
+          </div>
+        </div>
+        <p class="regra-desc">Apostou empate e o jogo terminou empatado.</p>
+        <div class="regra-sub-bloco">
+          <div class="regra-sub-title">3.1 — Empate com placar exato → 7 pts</div>
+          <div class="regra-exemplo">
+            <div class="regra-ex-row"><span class="regra-ex-label">Aposta</span><span class="regra-score">1 × 1</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Resultado</span><span class="regra-score">1 × 1</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Pontos</span><span class="pts-badge">7 ⭐</span></div>
+          </div>
+        </div>
+        <div class="regra-sub-bloco">
+          <div class="regra-sub-title">3.2 — Empate com placar diferente → 3 pts</div>
+          <div class="regra-exemplo">
+            <div class="regra-ex-row"><span class="regra-ex-label">Aposta</span><span class="regra-score">0 × 0</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Resultado</span><span class="regra-score">1 × 1</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Pontos</span><span class="pts-badge" style="background:rgba(245,166,35,0.12);color:var(--accent2)">3 👍</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="regra-item">
+        <div class="regra-header">
+          <span class="regra-num">4</span>
+          <div>
+            <div class="regra-title">Acertou o Vencedor</div>
+            <div class="regra-pts-tag r5-tag">5 pts</div>
+            <div class="regra-pts-tag r4-tag" style="margin-left:4px">4 pts</div>
+            <div class="regra-pts-tag r3-tag" style="margin-left:4px">3 pts</div>
+          </div>
+        </div>
+        <p class="regra-desc">Apostou no time certo, mas o placar não foi exato.</p>
+
+        <div class="regra-sub-bloco">
+          <div class="regra-sub-title">4.1 — Vencedor + gols do vencedor → 5 pts</div>
+          <div class="regra-exemplo">
+            <div class="regra-ex-row"><span class="regra-ex-label">Aposta</span><span class="regra-score">2 × 0</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Resultado</span><span class="regra-score">2 × 1</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Pontos</span><span class="pts-badge" style="background:rgba(0,224,150,0.12);color:var(--green)">5 ✅</span></div>
+          </div>
+        </div>
+
+        <div class="regra-sub-bloco">
+          <div class="regra-sub-title">4.2 — Vencedor + gols do perdedor → 4 pts</div>
+          <div class="regra-exemplo">
+            <div class="regra-ex-row"><span class="regra-ex-label">Aposta</span><span class="regra-score">2 × 0</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Resultado</span><span class="regra-score">3 × 0</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Pontos</span><span class="pts-badge" style="background:rgba(96,208,160,0.12);color:#60d0a0">4 ✅</span></div>
+          </div>
+        </div>
+
+        <div class="regra-sub-bloco">
+          <div class="regra-sub-title">4.3 — Só o vencedor → 3 pts</div>
+          <div class="regra-exemplo">
+            <div class="regra-ex-row"><span class="regra-ex-label">Aposta</span><span class="regra-score">2 × 0</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Resultado</span><span class="regra-score">3 × 1</span></div>
+            <div class="regra-ex-row"><span class="regra-ex-label">Pontos</span><span class="pts-badge" style="background:rgba(245,166,35,0.12);color:var(--accent2)">3 👍</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="regra-item">
+        <div class="regra-header">
+          <span class="regra-num">5</span>
+          <div>
+            <div class="regra-title">Errou</div>
+            <div class="regra-pts-tag r0-tag">0 pontos</div>
+          </div>
+        </div>
+        <p class="regra-desc">Não acertou vencedor, nem empate, nem placar invertido.</p>
+        <div class="regra-exemplo">
+          <div class="regra-ex-row"><span class="regra-ex-label">Aposta</span><span class="regra-score">2 × 0</span></div>
+          <div class="regra-ex-row"><span class="regra-ex-label">Resultado</span><span class="regra-score">1 × 1</span></div>
+          <div class="regra-ex-row"><span class="regra-ex-label">Pontos</span><span class="pts-badge" style="background:rgba(255,68,102,0.1);color:var(--accent3)">0 ❌</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- BOTTOM NAV (mobile only) -->
+<nav class="bottom-nav" id="bottomNav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-item active" data-page="ranking">
+      <span class="bnav-icon">🥇</span>
+      <span class="bnav-label">Ranking</span>
+    </button>
+    <button class="bnav-item" data-page="jogos">
+      <span class="bnav-icon">⚽</span>
+      <span class="bnav-label">Jogos</span>
+    </button>
+    <button class="bnav-item" data-page="palpites">
+      <span class="bnav-icon">📋</span>
+      <span class="bnav-label">Palpites</span>
+    </button>
+    <button class="bnav-item" data-page="premiacao">
+      <span class="bnav-icon">💰</span>
+      <span class="bnav-label">Prêmio</span>
+    </button>
+    <button class="bnav-item" data-page="regras">
+      <span class="bnav-icon">📖</span>
+      <span class="bnav-label">Regras</span>
+    </button>
+    <button class="bnav-item bnav-admin" data-page="admin">
+      <span class="bnav-icon">🔒</span>
+      <span class="bnav-label">Admin</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MODAL: Player Detail -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- MODAL: Edit Participant -->
+<div class="modal-overlay" id="editModalOverlay" onclick="closeEditModal()">
+  <div class="modal" style="max-width:400px" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeEditModal()">✕</button>
+    <div style="padding:24px 20px 28px">
+      <h3 style="font-family:var(--font-disp);font-size:1.5rem;letter-spacing:2px;margin-bottom:20px">✏️ Editar Participante</h3>
+      <input type="hidden" id="editParticipanteId" />
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:6px">Nome</label>
+          <input type="text" id="editNome" class="text-input" style="width:100%" placeholder="Nome completo" />
+        </div>
+        <div>
+          <label style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:6px">Telefone</label>
+          <input type="text" id="editFone" class="text-input" style="width:100%" placeholder="Telefone (opcional)" />
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="salvarEdicaoParticipante()">💾 Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <span>🏆 Bolão Copa 2026</span>
+    <span class="footer-dev">Desenvolvido por <strong>Jhony Beraldo</strong></span>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
