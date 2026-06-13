@@ -65,7 +65,7 @@ async function carregarTudo() {
   setLoading(true);
   try {
     const [participantes, jogos, palpites, resultados, config] = await Promise.all([
-      dbSelect("participantes", { order: "criado_em" }),
+      dbSelect("participantes", { order: "nome" }),
       dbSelect("jogos",         { order: "data" }),
       dbSelect("palpites"),
       dbSelect("resultados"),
@@ -581,7 +581,7 @@ async function clearParticipantes() {
 }
 
 function renderAdminParticipantes() {
-  const ps      = Store.participantes();
+  const ps      = [...Store.participantes()].sort((a,b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   const palpites = Store.palpites();
   const tbody   = document.getElementById("participantesBody");
   tbody.innerHTML = "";
@@ -717,6 +717,7 @@ function renderBulkParticipantPicker() {
     picker.innerHTML = '<p class="bulk-p-empty">Nenhum participante. Cadastre na aba Participantes.</p>';
     return;
   }
+  parts.sort((a,b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   picker.innerHTML = parts.map(p => {
     const n      = palpites.filter(x => x.participante_id === p.id).length;
     const active = bulkParticipanteAtivo === p.id ? " active" : "";
@@ -853,7 +854,12 @@ function renderAdminPalpites() {
   const sorted = [...palpites].sort((a,b) => {
     const pa = parts.find(x=>x.id===a.participante_id)?.nome || "";
     const pb = parts.find(x=>x.id===b.participante_id)?.nome || "";
-    return pa.localeCompare(pb);
+    const cmp = pa.localeCompare(pb, 'pt-BR');
+    if (cmp !== 0) return cmp;
+    // dentro do mesmo participante, ordena por jogo
+    const ja = jogos.find(x=>x.id===a.jogo_id)?.data || "";
+    const jb = jogos.find(x=>x.id===b.jogo_id)?.data || "";
+    return ja.localeCompare(jb);
   });
   sorted.forEach(pal => {
     const p   = parts.find(x => x.id === pal.participante_id);
