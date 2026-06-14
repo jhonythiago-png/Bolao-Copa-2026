@@ -1041,73 +1041,40 @@ function hideSplash() {
   if (el) { el.style.opacity = "0"; el.style.transition = "opacity 0.4s"; setTimeout(() => el.remove(), 400); }
 }
 
-// ===== LIVE SCORES — API-Football =====
+// ===== LIVE SCORES — football-data.org via Supabase Proxy =====
 const LiveSync = (() => {
-  const API_KEY    = "8c4b60605808265c6e2d410ae02cb5a7";
-  const API_BASE   = "https://v3.football.api-sports.io";
-  const LEAGUE_ID  = 1;      // FIFA World Cup (ID padrão API-Football)
-  const SEASON     = 2026;
-  const INTERVAL   = 30000;  // 30 segundos
+  const PROXY_URL = "https://ppsvevnflfsricjjleba.supabase.co/functions/v1/live-scores";
+  const PROXY_KEY = SUPABASE_KEY;
+  const INTERVAL  = 30000;
 
-  let _timer       = null;
-  let _running     = false;
-  let _lastSync    = null;
-  let _liveBadge   = null;
+  let _timer      = null;
+  let _running    = false;
+  let _lastSync   = null;
+  let _liveBadge  = null;
 
-  // Mapeamento de nomes da API → nomes no bolão
   const TEAM_MAP = {
-    "Mexico": "México", "Mexique": "México",
-    "South Africa": "África do Sul", "Afrique du Sud": "África do Sul",
-    "South Korea": "Coreia do Sul", "Korea Republic": "Coreia do Sul",
-    "Czech Republic": "República Tcheca", "Czechia": "República Tcheca",
-    "Canada": "Canadá",
-    "Bosnia": "Bósnia", "Bosnia and Herzegovina": "Bósnia",
-    "United States": "Estados Unidos", "USA": "Estados Unidos",
-    "Paraguay": "Paraguai",
-    "Qatar": "Catar",
-    "Switzerland": "Suíça",
-    "Brazil": "Brasil",
-    "Morocco": "Marrocos",
-    "Germany": "Alemanha",
-    "Curacao": "Curaçao",
-    "Netherlands": "Holanda",
-    "Japan": "Japão",
-    "Ivory Coast": "Costa do Marfim", "Cote d'Ivoire": "Costa do Marfim",
-    "Ecuador": "Equador",
-    "Spain": "Espanha", "Espagne": "Espanha",
-    "Cape Verde": "Cabo Verde",
-    "Belgium": "Bélgica",
-    "Egypt": "Egito",
-    "Saudi Arabia": "Arábia Saudita",
-    "Uruguay": "Uruguai",
-    "France": "França",
-    "Senegal": "Senegal",
-    "Argentina": "Argentina",
-    "Algeria": "Argélia",
-    "Portugal": "Portugal",
-    "DR Congo": "RD Congo", "Congo DR": "RD Congo",
-    "England": "Inglaterra",
-    "Croatia": "Croácia",
-    "Sweden": "Suécia",
-    "Tunisia": "Tunísia",
-    "Austria": "Áustria",
-    "Iraq": "Iraque",
-    "Norway": "Noruega",
-    "Uzbekistan": "Uzbequistão",
-    "Ghana": "Gana",
-    "Colombia": "Colômbia",
-    "Scotland": "Escócia",
-    "Turkey": "Turquia", "Turkiye": "Turquia",
-    "Croatia": "Croácia",
+    "Mexico":"México","South Africa":"África do Sul","Korea Republic":"Coreia do Sul",
+    "Czechia":"República Tcheca","Czech Republic":"República Tcheca","Canada":"Canadá",
+    "Bosnia and Herzegovina":"Bósnia","United States":"Estados Unidos","Paraguay":"Paraguai",
+    "Qatar":"Catar","Switzerland":"Suíça","Brazil":"Brasil","Morocco":"Marrocos",
+    "Germany":"Alemanha","Curaçao":"Curaçao","Netherlands":"Holanda","Japan":"Japão",
+    "Côte d'Ivoire":"Costa do Marfim","Ivory Coast":"Costa do Marfim","Ecuador":"Equador",
+    "Spain":"Espanha","Cape Verde":"Cabo Verde","Belgium":"Bélgica","Egypt":"Egito",
+    "Saudi Arabia":"Arábia Saudita","Uruguay":"Uruguai","France":"França","Senegal":"Senegal",
+    "Argentina":"Argentina","Algeria":"Argélia","Portugal":"Portugal",
+    "Congo, DR":"RD Congo","DR Congo":"RD Congo","England":"Inglaterra","Croatia":"Croácia",
+    "Sweden":"Suécia","Tunisia":"Tunísia","Austria":"Áustria","Iraq":"Iraque",
+    "Norway":"Noruega","Uzbekistan":"Uzbequistão","Ghana":"Gana","Colombia":"Colômbia",
+    "Scotland":"Escócia","Türkiye":"Turquia","Turkey":"Turquia",
   };
 
   function normalizar(nome) {
     return (TEAM_MAP[nome] || nome).toLowerCase().trim();
   }
 
-  function matchJogo(fixture, jogos) {
-    const ta = normalizar(fixture.teams.home.name);
-    const tb = normalizar(fixture.teams.away.name);
+  function matchJogo(homeTeam, awayTeam, jogos) {
+    const ta = normalizar(homeTeam);
+    const tb = normalizar(awayTeam);
     return jogos.find(j => {
       const ja = normalizar(j.time_a);
       const jb = normalizar(j.time_b);
@@ -1115,16 +1082,19 @@ const LiveSync = (() => {
     });
   }
 
-  function invertido(fixture, jogo) {
-    // verifica se home/away está invertido em relação ao time_a/time_b do bolão
-    return normalizar(fixture.teams.home.name) === normalizar(jogo.time_b);
+  function goalsOrdenados(homeTeam, jogo, scoreHome, scoreAway) {
+    if (normalizar(homeTeam) === normalizar(jogo.time_a)) {
+      return { ga: scoreHome, gb: scoreAway };
+    }
+    return { ga: scoreAway, gb: scoreHome };
   }
 
-  async function apiFetch(endpoint) {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      headers: { "x-apisports-key": API_KEY }
+  async function proxyFetch(endpoint) {
+    const url = `${PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
+    const res = await fetch(url, {
+      headers: { "Authorization": `Bearer ${PROXY_KEY}` }
     });
-    if (!res.ok) throw new Error(`API error ${res.status}`);
+    if (!res.ok) throw new Error(`Proxy error ${res.status}`);
     return res.json();
   }
 
@@ -1137,48 +1107,47 @@ const LiveSync = (() => {
       const jogos      = Store.jogos();
       const resultados = Store.resultados();
 
-      // Busca jogos ao vivo
-      const liveData = await apiFetch(`/fixtures?live=all&league=${LEAGUE_ID}&season=${SEASON}`);
-      const fixtures  = liveData?.response || [];
+      const liveData = await proxyFetch("/competitions/WC/matches?status=IN_PLAY,PAUSED,FINISHED");
+      const allFix   = liveData?.matches || [];
 
-      // Busca jogos de hoje encerrados (status FT/AET/PEN)
       const hoje = new Date().toISOString().slice(0, 10);
-      const todayData = await apiFetch(`/fixtures?date=${hoje}&league=${LEAGUE_ID}&season=${SEASON}`);
-      const todayFix  = todayData?.response || [];
+      const fixHoje = allFix.filter(f => f.utcDate?.slice(0, 10) === hoje);
 
-      // Une ao vivo + hoje encerrados
-      const allFix = [...fixtures];
-      todayFix.forEach(f => {
-        const status = f.fixture.status.short;
-        if (["FT","AET","PEN"].includes(status) && !allFix.find(x => x.fixture.id === f.fixture.id)) {
-          allFix.push(f);
-        }
-      });
-
-      if (!allFix.length) { _running = false; atualizarBadge(false); return; }
+      if (!fixHoje.length) {
+        _lastSync = new Date();
+        atualizarPainel({ status: "ok", atualizados: 0, fixtures: 0 });
+        atualizarBadge(false);
+        _running = false;
+        setBtnSyncLoading(false);
+        return;
+      }
 
       let atualizados = 0;
       let temAoVivo   = false;
 
-      for (const fix of allFix) {
-        const status = fix.fixture.status.short;
-        const aoVivo = ["1H","HT","2H","ET","BT","P","LIVE"].includes(status);
-        const finalizado = ["FT","AET","PEN"].includes(status);
+      for (const fix of fixHoje) {
+        const status     = fix.status;
+        const aoVivo     = ["IN_PLAY","PAUSED"].includes(status);
+        const finalizado = status === "FINISHED";
         if (!aoVivo && !finalizado) continue;
         if (aoVivo) temAoVivo = true;
 
-        const jogo = matchJogo(fix, jogos);
+        const homeTeam = fix.homeTeam?.name;
+        const awayTeam = fix.awayTeam?.name;
+        if (!homeTeam || !awayTeam) continue;
+
+        const jogo = matchJogo(homeTeam, awayTeam, jogos);
         if (!jogo) continue;
 
-        const inv  = invertido(fix, jogo);
-        const ga   = inv ? fix.goals.away  : fix.goals.home;
-        const gb   = inv ? fix.goals.home  : fix.goals.away;
-        if (ga === null || gb === null) continue;
+        const scoreHome = fix.score?.fullTime?.home ?? fix.score?.halfTime?.home;
+        const scoreAway = fix.score?.fullTime?.away ?? fix.score?.halfTime?.away;
+        if (scoreHome === null || scoreHome === undefined) continue;
+
+        const { ga, gb } = goalsOrdenados(homeTeam, jogo, scoreHome, scoreAway);
 
         const jaExiste = resultados.find(r => r.jogo_id === jogo.id);
         if (jaExiste && jaExiste.gols_a === ga && jaExiste.gols_b === gb && finalizado) continue;
 
-        // Salva/atualiza resultado no Supabase
         const row = {
           id:      `res_${jogo.id}`,
           jogo_id: jogo.id,
@@ -1199,7 +1168,7 @@ const LiveSync = (() => {
       }
 
       _lastSync = new Date();
-      atualizarPainel({ status: temAoVivo ? "live" : "ok", atualizados, fixtures: allFix.length });
+      atualizarPainel({ status: temAoVivo ? "live" : "ok", atualizados, fixtures: fixHoje.length });
       atualizarBadge(temAoVivo);
 
     } catch (e) {
@@ -1223,28 +1192,25 @@ const LiveSync = (() => {
     if (!el) return;
     const hora = new Date().toLocaleTimeString("pt-BR");
     const autoAtivo = !!_timer;
-
     const cores = {
-      live:  { bg: "rgba(231,76,60,.12)", borda: "#e74c3c", icone: "🔴", texto: "#e74c3c" },
-      ok:    { bg: "rgba(39,174,96,.1)",  borda: "var(--green)", icone: "✅", texto: "var(--green)" },
-      erro:  { bg: "rgba(231,76,60,.08)", borda: "#e74c3c55", icone: "❌", texto: "#e74c3c" },
-      sync:  { bg: "rgba(52,152,219,.1)", borda: "#3498db",  icone: "⏳", texto: "#3498db" },
+      live:  { bg:"rgba(231,76,60,.12)", borda:"#e74c3c" },
+      ok:    { bg:"rgba(39,174,96,.1)",  borda:"var(--green)" },
+      erro:  { bg:"rgba(231,76,60,.08)", borda:"#e74c3c55" },
+      sync:  { bg:"rgba(52,152,219,.1)", borda:"#3498db" },
     }[status] || {};
-
     const msgs = {
       live: `🔴 <strong>JOGO AO VIVO!</strong> ${atualizados > 0 ? `${atualizados} resultado(s) atualizado(s).` : "Acompanhando placar..."}`,
       ok:   `${atualizados > 0 ? `✅ ${atualizados} resultado(s) atualizado(s).` : "✅ Nenhum jogo ao vivo no momento."} Última sync: <strong>${hora}</strong>`,
-      erro: `❌ Erro na sincronização: <em>${erro}</em>`,
+      erro: `❌ Erro: <em>${erro}</em>`,
       sync: `⏳ Sincronizando com a API...`,
     }[status] || "";
-
-    el.style.cssText = `margin-top:12px; padding:12px 16px; border-radius:10px; border:1px solid ${cores.borda}; background:${cores.bg}; font-size:0.85rem; color:var(--fg); transition:all .3s`;
+    el.style.cssText = `margin-top:12px;padding:12px 16px;border-radius:10px;border:1px solid ${cores.borda};background:${cores.bg};font-size:0.85rem;color:var(--fg);transition:all .3s`;
     el.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <div>${msgs}</div>
         <div style="display:flex;gap:16px;font-family:var(--font-mono);font-size:0.78rem;color:var(--muted)">
-          <span>Jogos encontrados: <strong style="color:var(--fg)">${fixtures}</strong></span>
-          <span>Auto-Sync: <strong style="color:${autoAtivo ? "var(--green)" : "#e74c3c"}">${autoAtivo ? "▶ LIGADO" : "⏸ PAUSADO"}</strong></span>
+          <span>Jogos: <strong style="color:var(--fg)">${fixtures}</strong></span>
+          <span>Auto-Sync: <strong style="color:${autoAtivo?"var(--green)":"#e74c3c"}">${autoAtivo?"▶ LIGADO":"⏸ PAUSADO"}</strong></span>
         </div>
       </div>`;
   }
@@ -1254,13 +1220,12 @@ const LiveSync = (() => {
     const btnPausar = document.getElementById("btnSyncPausar");
     if (!btnLigar || !btnPausar) return;
     const ativo = !!_timer;
-    btnLigar.style.opacity  = ativo ? "0.4" : "1";
-    btnLigar.style.cursor   = ativo ? "default" : "pointer";
-    btnLigar.innerHTML      = ativo ? "▶ Auto-Sync LIGADO" : "▶ Ligar Auto-Sync";
-    btnPausar.style.opacity = ativo ? "1" : "0.4";
-    btnPausar.style.cursor  = ativo ? "pointer" : "default";
-    btnPausar.innerHTML     = ativo ? "⏸ Pausar Auto-Sync" : "⏸ Auto-Sync PAUSADO";
-    // destaque borda no ativo
+    btnLigar.style.opacity   = ativo ? "0.4" : "1";
+    btnLigar.style.cursor    = ativo ? "default" : "pointer";
+    btnLigar.innerHTML       = ativo ? "▶ Auto-Sync LIGADO" : "▶ Ligar Auto-Sync";
+    btnPausar.style.opacity  = ativo ? "1" : "0.4";
+    btnPausar.style.cursor   = ativo ? "pointer" : "default";
+    btnPausar.innerHTML      = ativo ? "⏸ Pausar Auto-Sync" : "⏸ Auto-Sync PAUSADO";
     btnLigar.style.borderColor  = ativo ? "var(--green)" : "";
     btnPausar.style.borderColor = !ativo ? "#e74c3c" : "";
   }
@@ -1269,15 +1234,7 @@ const LiveSync = (() => {
     if (!_liveBadge) {
       _liveBadge = document.createElement("div");
       _liveBadge.id = "liveBadge";
-      _liveBadge.style.cssText = `
-        position:fixed; bottom:18px; right:18px; z-index:999;
-        display:flex; align-items:center; gap:8px;
-        background:var(--card); border:1px solid var(--border);
-        border-radius:20px; padding:6px 14px;
-        font-family:var(--font-mono); font-size:0.72rem;
-        color:var(--muted); box-shadow:0 4px 16px rgba(0,0,0,.4);
-        transition: all .3s; cursor:pointer;
-      `;
+      _liveBadge.style.cssText = `position:fixed;bottom:18px;right:18px;z-index:999;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-family:var(--font-mono);font-size:0.72rem;color:var(--muted);box-shadow:0 4px 16px rgba(0,0,0,.4);transition:all .3s;cursor:pointer;`;
       _liveBadge.title = "Clique para ir à aba Resultados";
       _liveBadge.onclick = () => { navigate("admin"); setTimeout(() => showAdminTab("tabResultados"), 100); };
       document.body.appendChild(_liveBadge);
@@ -1307,19 +1264,13 @@ const LiveSync = (() => {
     toast("⏸ Auto-Sync pausado");
   }
 
-  // API pública
   return { start, stop, sincronizar };
 })();
 
-// ===== CSS da animação do badge ao vivo =====
+// ===== CSS animação badge =====
 (function injectLiveCSS() {
   const s = document.createElement("style");
-  s.textContent = `
-    @keyframes livePulse {
-      0%,100% { opacity:1; transform:scale(1); }
-      50%      { opacity:.4; transform:scale(1.4); }
-    }
-  `;
+  s.textContent = `@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}`;
   document.head.appendChild(s);
 })();
 
@@ -1330,7 +1281,7 @@ const LiveSync = (() => {
     await carregarTudo();
     hideSplash();
     navigate("ranking");
-    LiveSync.start(); // ← inicia sync automático
+    LiveSync.start();
   } catch(e) {
     document.getElementById("splashMsg").textContent = "Erro ao conectar. Verifique as credenciais do Supabase.";
     console.error(e);
