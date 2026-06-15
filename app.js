@@ -1117,10 +1117,7 @@ const LiveSync = (() => {
       const liveData = await proxyFetch("competitions/WC/matches", "IN_PLAY,PAUSED,FINISHED");
       const allFix   = liveData?.matches || [];
 
-      const hoje = new Date().toISOString().slice(0, 10);
-      const fixHoje = allFix.filter(f => f.utcDate?.slice(0, 10) === hoje);
-
-      if (!fixHoje.length) {
+      if (!allFix.length) {
         _lastSync = new Date();
         atualizarPainel({ status: "ok", atualizados: 0, fixtures: 0 });
         atualizarBadge(false);
@@ -1132,7 +1129,7 @@ const LiveSync = (() => {
       let atualizados = 0;
       let temAoVivo   = false;
 
-      for (const fix of fixHoje) {
+      for (const fix of allFix) {
         const status     = fix.status;
         const aoVivo     = ["IN_PLAY","PAUSED"].includes(status);
         const finalizado = status === "FINISHED";
@@ -1175,7 +1172,7 @@ const LiveSync = (() => {
       }
 
       _lastSync = new Date();
-      atualizarPainel({ status: temAoVivo ? "live" : "ok", atualizados, fixtures: fixHoje.length });
+      atualizarPainel({ status: temAoVivo ? "live" : "ok", atualizados, fixtures: allFix.length });
       atualizarBadge(temAoVivo);
 
     } catch (e) {
