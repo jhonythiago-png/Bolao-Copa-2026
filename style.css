@@ -1151,4 +1151,7 @@ body {
   body {
     padding-top: env(safe-area-inset-top, 20px);
   }
+  #liveBadge {
+    top: calc(env(safe-area-inset-top, 44px) + 48px) !important;
+  }
 }
