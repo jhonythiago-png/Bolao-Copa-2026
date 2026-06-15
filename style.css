@@ -1145,3 +1145,10 @@ body {
   .hero-banner-eyebrow { font-size: 0.58rem; letter-spacing: 4px; }
   .hero-banner-stat-val { font-size: 1.3rem; }
 }
+
+/* ===== PWA STANDALONE — padding safe area ===== */
+@media all and (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top, 20px);
+  }
+}
