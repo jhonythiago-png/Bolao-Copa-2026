@@ -1157,7 +1157,7 @@ const LiveSync = (() => {
     "Qatar":"Catar","Switzerland":"Suíça","Brazil":"Brasil","Morocco":"Marrocos",
     "Germany":"Alemanha","Curaçao":"Curaçao","Netherlands":"Holanda","Japan":"Japão",
     "Côte d'Ivoire":"Costa do Marfim","Ivory Coast":"Costa do Marfim","Ecuador":"Equador",
-    "Spain":"Espanha","Cape Verde":"Cabo Verde","Cape Verde Islands":"Cabo Verde",
+    "Spain":"Espanha","Cape Verde":"Cabo Verde","Cape Verde Islands":"Cabo Verde","Canada":"Canadá","Bosnia-Herzegovina":"Bósnia","Bosnia and Herzegovina":"Bósnia",
     "South Korea":"Coreia do Sul","Bosnia-Herzegovina":"Bósnia",
     "Bosnia and Herzegovina":"Bósnia","Czechia":"República Tcheca",
     "Czech Republic":"República Tcheca","South Africa":"África do Sul",
