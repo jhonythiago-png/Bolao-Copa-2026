@@ -578,12 +578,7 @@ function renderPremiacao() {
     tr.className  = slot ? `premio-row-${pos}` : "";
     tr.innerHTML  = `
       <td><span class="rank-pos ${pos<=3?`rank-${pos}`:""}">${icon}</span></td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="premio-avatar" style="width:32px;height:32px;font-size:0.72rem;background:${avColor};flex-shrink:0">${getAvatar(p.nome)}</div>
-          <span style="font-weight:600">${p.nome}</span>
-        </div>
-      </td>
+      <td><span style="font-weight:600">${p.nome}</span></td>
       <td><span class="pts-badge">${p.totalPts}</span></td>
       <td style="font-family:var(--font-disp);font-size:1.05rem;letter-spacing:1px;color:var(--green)">${slot?fmtBRL(total*slot.pct):"—"}</td>
       <td class="premio-pct-cell">${slot?(slot.pct*100).toFixed(0)+"%":"—"}</td>`;
