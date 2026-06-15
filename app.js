@@ -1249,7 +1249,9 @@ const LiveSync = (() => {
         const { ga, gb } = goalsOrdenados(homeTeam, jogo, scoreHome, scoreAway);
 
         const jaExiste = resultados.find(r => r.jogo_id === jogo.id);
-        if (jaExiste && jaExiste.gols_a === ga && jaExiste.gols_b === gb && finalizado) continue;
+        // Pula só se finalizado e placar não mudou e status ao_vivo também não mudou
+        if (jaExiste && jaExiste.gols_a === ga && jaExiste.gols_b === gb
+            && jaExiste.ao_vivo === aoVivo && finalizado) continue;
 
         const row = {
           id:      `res_${jogo.id}`,
@@ -1264,8 +1266,15 @@ const LiveSync = (() => {
 
       if (atualizados > 0) {
         await recarregarTabela("resultados");
-        const paginaAtual = document.querySelector(".nav-item.active")?.dataset?.page;
-        if (paginaAtual === "ranking") renderRanking();
+      }
+
+      // Sempre re-renderiza páginas visíveis para refletir status ao vivo
+      const paginaAtual = document.querySelector(".nav-item.active")?.dataset?.page ||
+                          document.querySelector(".bnav-item.active")?.dataset?.page;
+      if (paginaAtual === "ranking") renderRanking();
+      if (paginaAtual === "jogos")   renderJogos();
+      if (paginaAtual === "premio")  renderPremiacao();
+      if (atualizados > 0) {
         renderAdminResultados();
         renderAdminPalpites();
       }
