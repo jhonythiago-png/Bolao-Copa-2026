@@ -1095,8 +1095,9 @@ const LiveSync = (() => {
     return { ga: scoreAway, gb: scoreHome };
   }
 
-  async function proxyFetch(endpoint) {
-    const url = `${PROXY_URL}?endpoint=${encodeURIComponent(endpoint)}`;
+  async function proxyFetch(path, status = "") {
+    let url = `${PROXY_URL}?path=${encodeURIComponent(path)}`;
+    if (status) url += `&status=${encodeURIComponent(status)}`;
     const res = await fetch(url, {
       headers: { "Authorization": `Bearer ${PROXY_KEY}` }
     });
@@ -1113,7 +1114,7 @@ const LiveSync = (() => {
       const jogos      = Store.jogos();
       const resultados = Store.resultados();
 
-      const liveData = await proxyFetch("/competitions/WC/matches?status=IN_PLAY,PAUSED,FINISHED");
+      const liveData = await proxyFetch("competitions/WC/matches", "IN_PLAY,PAUSED,FINISHED");
       const allFix   = liveData?.matches || [];
 
       const hoje = new Date().toISOString().slice(0, 10);
