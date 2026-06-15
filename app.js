@@ -537,10 +537,6 @@ function renderPremiacao() {
       const vPremio = total * p.pct;
       const part    = ranked[i];
       const cor     = CORES[i];
-      const avColor = part ? getAvatarColor(part.nome) : "var(--bg3)";
-      const avatar  = part
-        ? `<div class="premio-avatar" style="background:${avColor}">${getAvatar(part.nome)}</div>`
-        : `<div class="premio-avatar" style="background:var(--bg3);color:var(--muted)">?</div>`;
       const spanCls = i === 0 ? "premio-card premio-card-first" : "premio-card";
       const posLabel = EMOJIS[i]
         ? `<span class="premio-emoji">${EMOJIS[i]}</span><span class="premio-card-pos" style="color:${cor}">${p.pos}</span>`
@@ -552,10 +548,7 @@ function renderPremiacao() {
             <span class="premio-card-pct">${(p.pct*100).toFixed(0)}%</span>
           </div>
           <div class="premio-card-valor" style="color:${cor}">${fmtBRL(vPremio)}</div>
-          <div class="premio-card-participante">
-            ${avatar}
-            <span class="premio-card-nome">${part?.nome || "Aguardando..."}</span>
-          </div>
+          <div class="premio-card-nome">${part?.nome || "Aguardando..."}</div>
           ${part ? `<div class="premio-card-pts">${part.totalPts} pts · ${part.exatos} exatos</div>` : ""}
         </div>`;
     }).join("");
@@ -1164,7 +1157,13 @@ const LiveSync = (() => {
     "Qatar":"Catar","Switzerland":"Suíça","Brazil":"Brasil","Morocco":"Marrocos",
     "Germany":"Alemanha","Curaçao":"Curaçao","Netherlands":"Holanda","Japan":"Japão",
     "Côte d'Ivoire":"Costa do Marfim","Ivory Coast":"Costa do Marfim","Ecuador":"Equador",
-    "Spain":"Espanha","Cape Verde":"Cabo Verde","Belgium":"Bélgica","Egypt":"Egito",
+    "Spain":"Espanha","Cape Verde":"Cabo Verde","Cape Verde Islands":"Cabo Verde",
+    "South Korea":"Coreia do Sul","Bosnia-Herzegovina":"Bósnia",
+    "Bosnia and Herzegovina":"Bósnia","Czechia":"República Tcheca",
+    "Czech Republic":"República Tcheca","South Africa":"África do Sul",
+    "Ivory Coast":"Costa do Marfim","Sweden":"Suécia","Tunisia":"Tunísia",
+    "Haiti":"Haiti","Scotland":"Escócia","Australia":"Austrália",
+    "Turkey":"Turquia","Türkiye":"Turquia","Belgium":"Bélgica","Egypt":"Egito",
     "Saudi Arabia":"Arábia Saudita","Uruguay":"Uruguai","France":"França","Senegal":"Senegal",
     "Argentina":"Argentina","Algeria":"Argélia","Portugal":"Portugal",
     "Congo, DR":"RD Congo","DR Congo":"RD Congo","England":"Inglaterra","Croatia":"Croácia",
