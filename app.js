@@ -1238,7 +1238,21 @@ const LiveSync = (() => {
     if (!_liveBadge) {
       _liveBadge = document.createElement("div");
       _liveBadge.id = "liveBadge";
-      _liveBadge.style.cssText = `position:fixed;top:calc(env(safe-area-inset-top, 0px) + 52px);right:10px;z-index:9999;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);box-shadow:0 2px 8px rgba(0,0,0,.4);transition:all .3s;cursor:pointer;`;
+      _liveBadge.style.cssText = `position:fixed;z-index:9999;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-family:var(--font-mono);font-size:0.68rem;color:var(--muted);box-shadow:0 2px 8px rgba(0,0,0,.4);transition:all .3s;cursor:pointer;`;
+      // Posição: mobile embaixo, desktop no topo direito
+      function _setBadgePos() {
+        if (window.innerWidth <= 768) {
+          _liveBadge.style.bottom = 'calc(env(safe-area-inset-bottom, 0px) + 72px)';
+          _liveBadge.style.right  = '10px';
+          _liveBadge.style.top    = 'auto';
+        } else {
+          _liveBadge.style.top    = '10px';
+          _liveBadge.style.right  = '10px';
+          _liveBadge.style.bottom = 'auto';
+        }
+      }
+      _setBadgePos();
+      window.addEventListener('resize', _setBadgePos);
       _liveBadge.title = "Clique para ir à aba Resultados";
       _liveBadge.onclick = () => { navigate("admin"); setTimeout(() => showAdminTab("tabResultados"), 100); };
       document.body.appendChild(_liveBadge);
