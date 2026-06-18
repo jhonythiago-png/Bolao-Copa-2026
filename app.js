@@ -1279,7 +1279,6 @@ const LiveSync = (() => {
         const aoVivo     = ["IN_PLAY","PAUSED"].includes(status);
         const finalizado = status === "FINISHED";
         if (!aoVivo && !finalizado) continue;
-        if (aoVivo) temAoVivo = true;
 
         const homeTeam = fix.homeTeam?.name;
         const awayTeam = fix.awayTeam?.name;
@@ -1287,6 +1286,8 @@ const LiveSync = (() => {
 
         const jogo = matchJogo(homeTeam, awayTeam, jogos);
         if (!jogo) continue;
+        // Só marca ao vivo se o jogo estiver cadastrado no bolão
+        if (aoVivo) temAoVivo = true;
 
         const scoreHome = fix.score?.fullTime?.home ?? fix.score?.halfTime?.home;
         const scoreAway = fix.score?.fullTime?.away ?? fix.score?.halfTime?.away;
