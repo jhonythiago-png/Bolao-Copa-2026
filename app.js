@@ -1203,7 +1203,7 @@ const LiveSync = (() => {
     "Algeria":"Argélia","Tunisia":"Tunísia","South Africa":"África do Sul",
     "Mali":"Mali","Burkina Faso":"Burkina Faso","Guinea":"Guiné",
     "Cape Verde":"Cabo Verde","Cape Verde Islands":"Cabo Verde",
-    "Congo, DR":"RD Congo","DR Congo":"RD Congo","Tanzania":"Tanzânia",
+    "Congo, DR":"RD Congo","DR Congo":"RD Congo","Congo DR":"RD Congo","Tanzania":"Tanzânia",
     "Mozambique":"Moçambique","Zambia":"Zâmbia","Zimbabwe":"Zimbábue",
     "Angola":"Angola","Uganda":"Uganda","Kenya":"Quênia",
     "Ethiopia":"Etiópia","Rwanda":"Ruanda",
