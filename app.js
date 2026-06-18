@@ -1161,7 +1161,7 @@ function hideSplash() {
 const LiveSync = (() => {
   const PROXY_URL = "https://ppsvevnflfsricjjleba.supabase.co/functions/v1/live-scores";
   const PROXY_KEY = SUPABASE_KEY;
-  const INTERVAL  = 30000;
+  const INTERVAL  = 30000; // 30 segundos
 
   let _timer      = null;
   let _running    = false;
@@ -1254,6 +1254,38 @@ const LiveSync = (() => {
     if (_running) return;
     _running = true;
     setBtnSyncLoading(true);
+    try {
+      // Usuários apenas leem do banco — API é chamada só pelo Cron Job do Supabase
+      await recarregarTabela("resultados");
+      const resultados = Store.resultados();
+      const temAoVivo  = resultados.some(r => r.ao_vivo === true);
+
+      const paginaAtual = document.querySelector(".nav-item.active")?.dataset?.page ||
+                          document.querySelector(".bnav-item.active")?.dataset?.page;
+      if (paginaAtual === "ranking") renderRanking();
+      if (paginaAtual === "jogos")   renderJogos();
+      if (paginaAtual === "premio")  renderPremiacao();
+      renderAdminResultados();
+      renderAdminPalpites();
+
+      _lastSync = new Date();
+      atualizarPainel({ status: temAoVivo ? "live" : "ok", atualizados: 0, fixtures: resultados.length });
+      atualizarBadge(temAoVivo);
+
+    } catch (e) {
+      console.warn("[LiveSync] Erro:", e.message);
+      atualizarPainel({ status: "erro", erro: e.message });
+      atualizarBadge(false);
+    }
+    _running = false;
+    setBtnSyncLoading(false);
+  }
+
+  // Chamada direta à API — apenas para admin (botão Sincronizar Agora)
+  async function sincronizarAPI() {
+    if (_running) return;
+    _running = true;
+    setBtnSyncLoading(true);
     atualizarPainel({ status: "sync", fixtures: 0 });
     try {
       const jogos      = Store.jogos();
@@ -1262,20 +1294,10 @@ const LiveSync = (() => {
       const liveData = await proxyFetch("competitions/WC/matches", "IN_PLAY,PAUSED,FINISHED");
       const allFix   = liveData?.matches || [];
 
-      if (!allFix.length) {
-        _lastSync = new Date();
-        atualizarPainel({ status: "ok", atualizados: 0, fixtures: 0 });
-        atualizarBadge(false);
-        _running = false;
-        setBtnSyncLoading(false);
-        return;
-      }
-
       let atualizados = 0;
       let temAoVivo   = false;
 
       for (const fix of allFix) {
-        const status     = fix.status;
         const aoVivo     = ["IN_PLAY","PAUSED"].includes(fix.status);
         const finalizado = fix.status === "FINISHED";
         if (!aoVivo && !finalizado) continue;
@@ -1286,7 +1308,6 @@ const LiveSync = (() => {
 
         const jogo = matchJogo(homeTeam, awayTeam, jogos);
         if (!jogo) continue;
-        // Só marca ao vivo se o jogo estiver cadastrado no bolão
         if (aoVivo) temAoVivo = true;
 
         const scoreHome = fix.score?.fullTime?.home ?? fix.score?.halfTime?.home;
@@ -1294,44 +1315,32 @@ const LiveSync = (() => {
         if (scoreHome === null || scoreHome === undefined) continue;
 
         const { ga, gb } = goalsOrdenados(homeTeam, jogo, scoreHome, scoreAway);
-
         const jaExiste = resultados.find(r => r.jogo_id === jogo.id);
-        // Pula só se finalizado e placar não mudou e status ao_vivo também não mudou
         if (jaExiste && jaExiste.gols_a === ga && jaExiste.gols_b === gb
             && jaExiste.ao_vivo === aoVivo && finalizado) continue;
 
-        const row = {
-          id:      `res_${jogo.id}`,
-          jogo_id: jogo.id,
-          gols_a:  ga,
-          gols_b:  gb,
-          ao_vivo: aoVivo,
-        };
-        await db.from("resultados").upsert(row, { onConflict: "jogo_id" });
+        await db.from("resultados").upsert({
+          id: `res_${jogo.id}`, jogo_id: jogo.id,
+          gols_a: ga, gols_b: gb, ao_vivo: aoVivo,
+        }, { onConflict: "jogo_id" });
         atualizados++;
       }
 
-      if (atualizados > 0) {
-        await recarregarTabela("resultados");
-      }
+      if (atualizados > 0) await recarregarTabela("resultados");
 
-      // Sempre re-renderiza páginas visíveis para refletir status ao vivo
       const paginaAtual = document.querySelector(".nav-item.active")?.dataset?.page ||
                           document.querySelector(".bnav-item.active")?.dataset?.page;
       if (paginaAtual === "ranking") renderRanking();
       if (paginaAtual === "jogos")   renderJogos();
       if (paginaAtual === "premio")  renderPremiacao();
-      if (atualizados > 0) {
-        renderAdminResultados();
-        renderAdminPalpites();
-      }
+      if (atualizados > 0) { renderAdminResultados(); renderAdminPalpites(); }
 
       _lastSync = new Date();
       atualizarPainel({ status: temAoVivo ? "live" : "ok", atualizados, fixtures: allFix.length });
       atualizarBadge(temAoVivo);
 
     } catch (e) {
-      console.warn("[LiveSync] Erro:", e.message);
+      console.warn("[LiveSync] Erro API:", e.message);
       atualizarPainel({ status: "erro", erro: e.message });
       atualizarBadge(false);
     }
