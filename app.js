@@ -1240,8 +1240,9 @@ const LiveSync = (() => {
     return { ga: scoreAway, gb: scoreHome };
   }
 
-  async function proxyFetch(path) {
-    const url = `${PROXY_URL}?path=${encodeURIComponent(path)}`;
+  async function proxyFetch(path, status = "") {
+    let url = `${PROXY_URL}?path=${encodeURIComponent(path)}`;
+    if (status) url += `&status=${encodeURIComponent(status)}`;
     const res = await fetch(url, {
       headers: { "Authorization": `Bearer ${PROXY_KEY}` }
     });
@@ -1258,35 +1259,8 @@ const LiveSync = (() => {
       const jogos      = Store.jogos();
       const resultados = Store.resultados();
 
-      // Ao vivo — API-Football
-      const liveData = await proxyFetch("fixtures?live=all&league=1&season=2026");
-      const liveFixtures = liveData?.response || [];
-
-      // Finalizados de hoje — API-Football
-      const hoje = new Date().toISOString().slice(0, 10);
-      const finishedData = await proxyFetch(`fixtures?date=${hoje}&league=1&season=2026`);
-      const finishedFixtures = (finishedData?.response || []).filter(f =>
-        ["FT","AET","PEN"].includes(f.fixture?.status?.short)
-      );
-
-      // Une ao vivo + finalizados (sem duplicar)
-      const allIds = new Set(liveFixtures.map(f => f.fixture.id));
-      const allFix = [
-        ...liveFixtures.map(f => ({
-          status: "IN_PLAY",
-          homeTeam: { name: f.teams.home.name },
-          awayTeam: { name: f.teams.away.name },
-          score: { fullTime: { home: f.goals.home, away: f.goals.away } }
-        })),
-        ...finishedFixtures
-          .filter(f => !allIds.has(f.fixture.id))
-          .map(f => ({
-            status: "FINISHED",
-            homeTeam: { name: f.teams.home.name },
-            awayTeam: { name: f.teams.away.name },
-            score: { fullTime: { home: f.goals.home, away: f.goals.away } }
-          }))
-      ];
+      const liveData = await proxyFetch("competitions/WC/matches", "IN_PLAY,PAUSED,FINISHED");
+      const allFix   = liveData?.matches || [];
 
       if (!allFix.length) {
         _lastSync = new Date();
@@ -1302,7 +1276,7 @@ const LiveSync = (() => {
 
       for (const fix of allFix) {
         const status     = fix.status;
-        const aoVivo     = fix.status === "IN_PLAY" || fix.status === "PAUSED";
+        const aoVivo     = ["IN_PLAY","PAUSED"].includes(fix.status);
         const finalizado = fix.status === "FINISHED";
         if (!aoVivo && !finalizado) continue;
 
