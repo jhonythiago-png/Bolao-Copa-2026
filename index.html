@@ -635,6 +635,68 @@
       </div>
 
     </div>
+
+    <!-- DESEMPATE -->
+    <div class="card" style="border-color:var(--accent2)55;margin-top:8px">
+      <div class="card-header">
+        <span>⚖️ Critérios de Desempate</span>
+      </div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px">
+        Quando dois ou mais participantes terminam com a <strong style="color:var(--fg)">mesma pontuação</strong>, os critérios abaixo são aplicados em ordem até o desempate.
+      </p>
+      <div class="desempate-list">
+
+        <div class="desempate-item">
+          <div class="desempate-num" style="background:rgba(39,174,96,.15);color:#2ecc71">1º</div>
+          <div class="desempate-info">
+            <div class="desempate-title">✅ Mais Placares Exatos</div>
+            <div class="desempate-desc">Quem acertou mais placares exatos (7 pts) fica à frente.</div>
+            <div class="desempate-ex">
+              <span>João: 3 exatos</span><span class="desempate-vs">vs</span><span>Maria: 2 exatos</span>
+              <span class="desempate-winner">→ João vence 🏆</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="desempate-item">
+          <div class="desempate-num" style="background:rgba(245,166,35,.15);color:var(--accent2)">2º</div>
+          <div class="desempate-info">
+            <div class="desempate-title">⚡ Mais Parciais</div>
+            <div class="desempate-desc">Se empatados em exatos, quem acertou mais vencedores/empates.</div>
+            <div class="desempate-ex">
+              <span>João: 4 parciais</span><span class="desempate-vs">vs</span><span>Maria: 3 parciais</span>
+              <span class="desempate-winner">→ João vence 🏆</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="desempate-item">
+          <div class="desempate-num" style="background:rgba(231,76,60,.15);color:#e74c3c">3º</div>
+          <div class="desempate-info">
+            <div class="desempate-title">❌ Menos Erros</div>
+            <div class="desempate-desc">Se ainda empatados, quem cometeu menos erros completos (0 pts).</div>
+            <div class="desempate-ex">
+              <span>João: 5 erros</span><span class="desempate-vs">vs</span><span>Maria: 7 erros</span>
+              <span class="desempate-winner">→ João vence 🏆</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="desempate-item">
+          <div class="desempate-num" style="background:rgba(0,212,255,.15);color:var(--accent)">4º</div>
+          <div class="desempate-info">
+            <div class="desempate-title">📅 Últimos 3 Jogos</div>
+            <div class="desempate-desc">Se ainda empatados, quem fez mais pontos nos 3 jogos mais recentes disputados.</div>
+            <div class="desempate-ex">
+              <span>João: 15 pts</span><span class="desempate-vs">vs</span><span>Maria: 11 pts</span>
+              <span class="desempate-winner">→ João vence 🏆</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </section>
 
 </main>
