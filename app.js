@@ -218,8 +218,25 @@ function computeRanking() {
       if (jogo) detalhe.push({ jogo, pal, pts });
     });
 
-    return { ...p, totalPts, exatos, parciais, erros, vencedores, jogosFeitos, detalhe };
-  }).sort((a, b) => b.totalPts - a.totalPts || b.exatos - a.exatos);
+    // Pontos nos últimos 3 jogos (critério 4 de desempate)
+    const jogosComResultado = detalhe
+      .filter(d => d.pts !== null)
+      .sort((x, y) => y.jogo.data.localeCompare(x.jogo.data));
+    const ultimos3pts = jogosComResultado.slice(0, 3).reduce((sum, d) => sum + (d.pts || 0), 0);
+
+    return { ...p, totalPts, exatos, parciais, erros, vencedores, jogosFeitos, detalhe, ultimos3pts };
+  }).sort((a, b) => {
+    // 1º — Mais pontos totais
+    if (b.totalPts !== a.totalPts) return b.totalPts - a.totalPts;
+    // 2º — Mais exatos
+    if (b.exatos !== a.exatos) return b.exatos - a.exatos;
+    // 3º — Mais parciais
+    if (b.parciais !== a.parciais) return b.parciais - a.parciais;
+    // 4º — Menos erros
+    if (a.erros !== b.erros) return a.erros - b.erros;
+    // 5º — Maior pts nos últimos 3 jogos
+    return b.ultimos3pts - a.ultimos3pts;
+  });
 }
 
 // ===== RENDER RANKING =====
@@ -292,6 +309,7 @@ function renderRanking() {
                 <span class="rcs rcs-exato">✅ ${p.exatos} exatos</span>
                 <span class="rcs rcs-parcial">⚡ ${p.parciais} parciais</span>
                 <span class="rcs rcs-erro">❌ ${p.erros} erros</span>
+                <span class="rcs rcs-ultimos">📅 ${p.ultimos3pts}pts (últ. 3)</span>
               </div>
             </div>
           </div>
