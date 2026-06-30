@@ -1366,16 +1366,18 @@ const LiveSync = (() => {
     const hora = new Date().toLocaleTimeString("pt-BR");
     const autoAtivo = !!_timer;
     const cores = {
-      live:  { bg:"rgba(231,76,60,.12)", borda:"#e74c3c" },
-      ok:    { bg:"rgba(39,174,96,.1)",  borda:"var(--green)" },
-      erro:  { bg:"rgba(231,76,60,.08)", borda:"#e74c3c55" },
-      sync:  { bg:"rgba(52,152,219,.1)", borda:"#3498db" },
+      live:    { bg:"rgba(231,76,60,.12)", borda:"#e74c3c" },
+      ok:      { bg:"rgba(39,174,96,.1)",  borda:"var(--green)" },
+      erro:    { bg:"rgba(231,76,60,.08)", borda:"#e74c3c55" },
+      sync:    { bg:"rgba(52,152,219,.1)", borda:"#3498db" },
+      pausado: { bg:"rgba(245,166,35,.1)", borda:"var(--accent2)" },
     }[status] || {};
     const msgs = {
-      live: `🔴 <strong>JOGO AO VIVO!</strong> ${atualizados > 0 ? `${atualizados} resultado(s) atualizado(s).` : "Acompanhando placar..."}`,
-      ok:   `${atualizados > 0 ? `✅ ${atualizados} resultado(s) atualizado(s).` : "✅ Nenhum jogo ao vivo no momento."} Última sync: <strong>${hora}</strong>`,
-      erro: `❌ Erro: <em>${erro}</em>`,
-      sync: `⏳ Sincronizando com a API...`,
+      live:    `🔴 <strong>JOGO AO VIVO!</strong> ${atualizados > 0 ? `${atualizados} resultado(s) atualizado(s).` : "Acompanhando placar..."}`,
+      ok:      `${atualizados > 0 ? `✅ ${atualizados} resultado(s) atualizado(s).` : "✅ Nenhum jogo ao vivo no momento."} Última sync: <strong>${hora}</strong>`,
+      erro:    `❌ Erro: <em>${erro}</em>`,
+      sync:    `⏳ Sincronizando com a API...`,
+      pausado: `⏸ <strong>${erro}</strong>`,
     }[status] || "";
     el.style.cssText = `margin-top:12px;padding:12px 16px;border-radius:10px;border:1px solid ${cores.borda};background:${cores.bg};font-size:0.85rem;color:var(--fg);transition:all .3s`;
     el.innerHTML = `
@@ -1422,20 +1424,31 @@ const LiveSync = (() => {
     }
   }
 
-  async function start() {
+  async function start(forcar = true) {
     if (_timer) return;
-    await db.from("config").upsert({ chave: "sync_pausado", valor: "false" }, { onConflict: "chave" });
+    if (forcar) {
+      // Só grava "ligado" quando o usuário clica manualmente no botão
+      await db.from("config").upsert({ chave: "sync_pausado", valor: "false" }, { onConflict: "chave" });
+    } else {
+      // Na inicialização automática, respeita o estado salvo no banco
+      const { data: cfg } = await db.from("config").select("valor").eq("chave", "sync_pausado").maybeSingle();
+      if (cfg?.valor === "true") {
+        atualizarBotoes();
+        atualizarPainel({ status: "pausado", erro: "Auto-Sync está pausado (definido pelo admin).", fixtures: 0 });
+        return; // não inicia o timer
+      }
+    }
     sincronizar();
     _timer = setInterval(sincronizar, INTERVAL);
     atualizarBotoes();
-    toast("▶ Auto-Sync ligado para TODOS — verificando a cada 30s");
+    if (forcar) toast("▶ Auto-Sync ligado para TODOS — verificando a cada 30s");
   }
 
   async function stop() {
     if (_timer) { clearInterval(_timer); _timer = null; }
     await db.from("config").upsert({ chave: "sync_pausado", valor: "true" }, { onConflict: "chave" });
     atualizarBotoes();
-    atualizarPainel({ status: "erro", erro: "Auto-Sync pausado para TODOS os usuários.", fixtures: 0 });
+    atualizarPainel({ status: "pausado", erro: "Auto-Sync pausado para TODOS os usuários.", fixtures: 0 });
     toast("⏸ Auto-Sync pausado para TODOS");
   }
 
@@ -1456,7 +1469,7 @@ const LiveSync = (() => {
     await carregarTudo();
     hideSplash();
     navigate("ranking");
-    LiveSync.start();
+    LiveSync.start(false); // respeita pausa salva no banco
   } catch(e) {
     document.getElementById("splashMsg").textContent = "Erro ao conectar. Verifique as credenciais do Supabase.";
     console.error(e);
