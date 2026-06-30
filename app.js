@@ -1255,10 +1255,15 @@ const LiveSync = (() => {
     _running = true;
     setBtnSyncLoading(true);
     try {
+      // Verifica se está pausado globalmente
+      const { data: cfg } = await db.from("config").select("valor").eq("chave", "sync_pausado").maybeSingle();
+      const pausadoGlobal = cfg?.valor === "true";
+      if (pausadoGlobal && _timer) { clearInterval(_timer); _timer = null; atualizarBotoes(); }
+
       // Usuários apenas leem do banco — API é chamada só pelo Cron Job do Supabase
       await recarregarTabela("resultados");
       const resultados = Store.resultados();
-      const temAoVivo  = resultados.some(r => r.ao_vivo === true);
+      const temAoVivo  = resultados.some(r => r.ao_vivo === true) && !pausadoGlobal;
 
       const paginaAtual = document.querySelector(".nav-item.active")?.dataset?.page ||
                           document.querySelector(".bnav-item.active")?.dataset?.page;
@@ -1417,19 +1422,21 @@ const LiveSync = (() => {
     }
   }
 
-  function start() {
+  async function start() {
     if (_timer) return;
+    await db.from("config").upsert({ chave: "sync_pausado", valor: "false" }, { onConflict: "chave" });
     sincronizar();
     _timer = setInterval(sincronizar, INTERVAL);
     atualizarBotoes();
-    toast("▶ Auto-Sync ligado — verificando a cada 30s");
+    toast("▶ Auto-Sync ligado para TODOS — verificando a cada 30s");
   }
 
-  function stop() {
+  async function stop() {
     if (_timer) { clearInterval(_timer); _timer = null; }
+    await db.from("config").upsert({ chave: "sync_pausado", valor: "true" }, { onConflict: "chave" });
     atualizarBotoes();
-    atualizarPainel({ status: "erro", erro: "Auto-Sync pausado manualmente.", fixtures: 0 });
-    toast("⏸ Auto-Sync pausado");
+    atualizarPainel({ status: "erro", erro: "Auto-Sync pausado para TODOS os usuários.", fixtures: 0 });
+    toast("⏸ Auto-Sync pausado para TODOS");
   }
 
   return { start, stop, sincronizar };
